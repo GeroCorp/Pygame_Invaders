@@ -29,11 +29,21 @@ PAUSE_IMG = pygame.transform.scale(pygame.image.load("./src/assets/img/pauseMenu
 OPTION_IMG = pygame.transform.scale(pygame.image.load("./src/assets/img/optionMenu.jpg"), SCREEN_SIZE)
 GAMEOVER_IMG = pygame.transform.scale(pygame.image.load("./src/assets/img/gameOver.jpg"), SCREEN_SIZE)
 PLAYER_SPRITE = pygame.transform.scale(pygame.image.load("./src/assets/sprites/player.png"), PLAYER_SIZE)
+
 ENEMY_SPRITE_1 = pygame.transform.scale(pygame.image.load("./src/assets/sprites/invader_A_1.png"), ENEMY_SIZE)
 ENEMY_SPRITE_2 = pygame.transform.scale(pygame.image.load("./src/assets/sprites/invader_A_2.png"), ENEMY_SIZE)
 
 ENEMIES_SPRITES = [ENEMY_SPRITE_1, ENEMY_SPRITE_2]
 
+#Scores display
+BEST_SCORES_X = 20
+LAST_SCORES_X = 990
+
+
 
 #Colors
 COLORES = pygame.color.THECOLORS
+
+#File path
+RANKING_FILE = "./data/ranking.csv"
+LAST_SCORE_FILE = "./data/lastScores.json"

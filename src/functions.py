@@ -2,6 +2,8 @@ import pygame
 from settings import *
 import sys
 
+
+
 def quitGame():
     """Closes the game
     """
@@ -67,7 +69,6 @@ def newButton(text, rect, color, hoverColor, action=None):
 
     return hover
 
-
 def pointerChange(hover: bool):
     """Changes mouse pointer
 
@@ -93,7 +94,6 @@ def bulletCollision(bullet, enemy):
        point_rect(bullet.topright, enemy):
         return True
 
-
 def waitUser (key):
     """Waits for the user to press 'key' to continue
 
@@ -109,3 +109,61 @@ def waitUser (key):
             if event.type == pygame.KEYDOWN:
                 if event.key == key:
                     flagStart = False
+
+def getActualPath(file: str)-> str:
+    """Obtener ruta actual de un archivo
+
+    Returns:
+        _type_: Ruta del archivo
+    """
+    import os
+    pwd = os.path.dirname(__file__)
+
+    return os.path.join(pwd, file)
+
+def nameInput(score):
+    font = pygame.font.SysFont(None, 36)
+    name = ""
+
+    SCREEN.fill(COLORES['black'])
+    typingName = True
+
+    endText = font.render("Enter your username: ", True, COLORES['white'])
+    endTextRect = pygame.Rect(SCREEN_X_CENTER-50, SCREEN_Y_CENTER, 100, 100)
+    SCREEN.blit(endText, endText.get_rect(center= endTextRect.center))
+    
+
+    scoreTextRect = pygame.Rect(SCREEN_X_CENTER-50, SCREEN_Y_CENTER-150, 100, 100)
+    scoreText = font.render(f"Score: {score}", True, COLORES['white'])
+    SCREEN.blit(scoreText, scoreText.get_rect(center= scoreTextRect.center))
+
+
+    nameRect = pygame.Rect(SCREEN_X_CENTER-50, SCREEN_Y_CENTER+150, 100, 100)
+    pygame.display.update()
+    while typingName:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                quitGame()
+            
+            if event.type == pygame.KEYDOWN:
+
+                if event.key == pygame.K_RETURN:
+                    return name
+                
+                elif event.key == pygame.K_BACKSPACE:
+                    name = name[:-1]
+                else: 
+                    name += event.unicode
+        
+        SCREEN.fill(COLORES['black'])
+
+        endText = font.render("Enter your username: ", True, COLORES['white'])
+        SCREEN.blit(endText, endText.get_rect(center= endTextRect.center))
+
+        scoreText = font.render(f"Score: {score}", True, COLORES['white'])
+        SCREEN.blit(scoreText, scoreText.get_rect(center= scoreTextRect.center))
+
+        nameText = font.render(name, True, COLORES['white'])
+        SCREEN.blit(nameText, nameText.get_rect(center = nameRect.center))
+        pygame.display.update()
+        

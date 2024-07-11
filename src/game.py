@@ -1,54 +1,9 @@
 import pygame
 from settings import *
 from functions import *
-
-def enemySpawner (row: int, col: int, width: int, height: int, list: list):
-    """Create a new list with enemies
-
-    Args:
-        row (_type_):Rows quantity
-        col (_type_): Col quantity
-        width (_type_): Enemy's width
-        height (_type_): Enemy's height
-        list (_type_): List with enemies' rect
-    """
-    for thisrow in range(row):
-        for thiscol in range(col):
-            x = thiscol * (width + 50) + 100
-            y = thisrow * (height + 20) + 90
-            list.append({"rect": pygame.Rect(x, y, width, height)})
-def enemyRetry(list:list):
-    """Moves enemies up for a "continue" game
-
-    Args:
-        list (list): Enemies list
-    """
-    for enemy in list:
-        if enemy["rect"].top >=90:
-            enemy["rect"].y -= 50
-def playerDeath(playerRect, playerLifes, deathText: str, screenElements: list):
-    """Function for player's death
-
-    Args:
-        playerRect (rect): _description_
-        playerLifes (var): _description_
-        deathText (str): _description_
-        screenElements (list): _description_
-
-    Returns:
-        newVar: Returns new values for life, lifeText and screenElements
-    """
-    font = pygame.font.SysFont(None, 36)
-    playerRect.x = SCREEN_X_CENTER- playerRect.width//2
-    SCREEN.blit(deathText, SCREEN_CENTER)
-    screenElements = []
-    pygame.display.flip()
-    waitUser(pygame.K_SPACE)
-
-    playerLifes -= 1
-    playerLifesText = font.render(f"Vidas: {playerLifes}", True, COLORES["white"])
-
-    return playerLifes, playerLifesText, screenElements
+from filesHandler import *
+from gameOver import gameOver
+from gameFunctions import *
 
 def startGame():
 
@@ -56,15 +11,13 @@ def startGame():
 
     font = pygame.font.SysFont(None, 36)
 
-    
+    #TEST delete later
     keyK = False
     
 
     #Buttons
     resumeButton = {"rect": pygame.Rect(SCREEN_X_CENTER- buttonSize[0]//2,SCREEN_Y_CENTER ,buttonSize[0], buttonSize[1]),"text":"Resume"}
     mainMenuButton = {"rect": pygame.Rect(SCREEN_X_CENTER- buttonSize[0]//2,HEIGHT-100,buttonSize[0], buttonSize[1]),"text":"Main menu"}
-    retryMain = {"rect": pygame.Rect(resumeButton["rect"].x - buttonSize[0] , SCREEN_Y_CENTER ,buttonSize[0], buttonSize[1]),"text":"Main menu"}
-    retryButton = {"rect": pygame.Rect(resumeButton["rect"].x + buttonSize[0] ,SCREEN_Y_CENTER ,buttonSize[0], buttonSize[1]),"text":"Retry"}
 
     #-------------------- PLAYER ------------------------
     player = {"rect": pygame.Rect(SCREEN_X_CENTER- player_width//2, HEIGHT-100, player_width, player_height)}
@@ -83,12 +36,11 @@ def startGame():
     kLeft = False
     kRight = False
     
-
     #-------------------------------ENEMIES------------------------------------------------------
     enemy = {"rect": pygame.Rect(SCREEN_X_CENTER, SCREEN_Y_CENTER, player_width, player_height)}
     laser_speed = 6
     num_enemies_x = 10
-    num_enemies_y = 5
+    num_enemies_y = 6
     MAX = 15
     HARD = 10
     NORMAL = 5
@@ -98,14 +50,6 @@ def startGame():
     maxRight = False
 
     enemySpawner(num_enemies_y, num_enemies_x, enemy_width, enemy_height, enemies)
-
-
-   
-
-    mouse_arrow= False
-    gamePaused = False 
-    isRunning = True
-
 
 
     #----------------------------TIMERS------------------------------
@@ -126,6 +70,11 @@ def startGame():
     #bullet cooldown
     lastShot = 0
     coolDown = 1000 #MS
+
+    #Miscellaneous var
+    mouse_arrow= False
+    gamePaused = False 
+    isRunning = True
 
     while isRunning:
         pygame.time.Clock().tick(60)
@@ -231,10 +180,7 @@ def startGame():
                 laser.y+= laser_speed
                 if laser.top > HEIGHT:
                     lasers.remove(laser)
-            
-
-
-            
+     
 
             #PLAYER KILL
             for enemy in enemies:
@@ -288,27 +234,32 @@ def startGame():
 
             currentTime = pygame.time.get_ticks()
             #Cada 0.4 segundos actualiza posición
-            if currentTime - startTime >= intervalo:
-                #
-                lastRowEnemy = max(enemies, key=lambda enemy: enemy["rect"].right)
+            if player_lifes !=0:
+                if currentTime - startTime >= intervalo:
+                    #
+                    lastRowEnemy = max(enemies, key=lambda enemy: enemy["rect"].right)
 
-                firstRowEnemy = min(enemies, key=lambda enemy: enemy["rect"].left)
+                    firstRowEnemy = min(enemies, key=lambda enemy: enemy["rect"].left)
+                    
+                    if lastRowEnemy["rect"].right >= ENEMIES_X_SQUARE[1]:
+                        maxRight = True
+                        for enemy in enemies:
+                            enemy["rect"].y += 20
+
                 
-                if lastRowEnemy["rect"].right >= ENEMIES_X_SQUARE[1]:
-                    maxRight = True
+                    if firstRowEnemy["rect"].left <= ENEMIES_X_SQUARE[0]:
+                        maxRight = False
+                        for enemy in enemies:
+                            enemy["rect"].y += 20
 
-                
-                if firstRowEnemy["rect"].left <= ENEMIES_X_SQUARE[0]:
-                    maxRight = False
+                    for enemy in enemies:
+                        if enemy["rect"].right <= ENEMIES_X_SQUARE[1] and not maxRight:
+                            enemy["rect"].x += enemy_speed
 
-                for enemy in enemies:
-                    if enemy["rect"].right <= ENEMIES_X_SQUARE[1] and not maxRight:
-                        enemy["rect"].x += enemy_speed
+                        if enemy["rect"].left >= ENEMIES_X_SQUARE[0] and maxRight:
+                            enemy["rect"].x -= enemy_speed
 
-                    if enemy["rect"].left >= ENEMIES_X_SQUARE[0] and maxRight:
-                        enemy["rect"].x -= enemy_speed
-
-                startTime = currentTime
+                    startTime = currentTime
 
 
 
@@ -335,32 +286,13 @@ def startGame():
             #GAME OVER SCREEN
             if player_lifes == 0:
                 pygame.mouse.set_visible(True)
-                enemies = []
-                SCREEN.blit(GAMEOVER_IMG, SCREEN_ORIGIN)
-                
-                #RETRY BUTTON
-                if newButton(retryButton["text"], retryButton["rect"], COLORES["yellow2"], COLORES["orange2"]):
-                    mouse_arrow = True
-                    click = pygame.mouse.get_pressed()
-                    if click [0] == 1:
-                        player_lifes = 3
-                        lifesText = font.render(f"Vidas: {player_lifes}", True, COLORES["white"])
-                        enemySpawner(num_enemies_y, num_enemies_x, enemy_width, enemy_height, enemies)
+                name = nameInput(player_score)
+                user = {}
+                user["username"] = name
+                user["score"] = player_score
+                saveBestScores(RANKING_FILE,user)
+                isRunning= gameOver(startGame)
 
-                        player_score = 0
-                        scoreText = font.render(f"Score: {player_score}", True, COLORES["white"])
-                        lasers= []
-                        bullets= []
-                        enemyRespawn = False
-
-                #MAIN MENU BUTTON
-                if newButton(retryMain["text"], retryMain["rect"], COLORES["yellow2"], COLORES["orange2"]):
-                    mouse_arrow = True
-                    click = pygame.mouse.get_pressed()
-                    if click [0] == 1:
-                        isRunning = False
-                    
-                    pygame.display.flip()
 
             pygame.display.flip()
 
@@ -369,6 +301,10 @@ def startGame():
             
             SCREEN.blit(PAUSE_IMG, SCREEN_ORIGIN)
                 
+            click = pygame.mouse.get_pressed()
+            if click [0] == 1:
+                print(pygame.mouse.get_pos())
+
             if newButton(resumeButton["text"], resumeButton["rect"], COLORES["yellow2"], COLORES["orange2"]):
                 mouse_arrow = True
                 click = pygame.mouse.get_pressed()
@@ -379,8 +315,21 @@ def startGame():
                 click = pygame.mouse.get_pressed()
                 if click [0] == 1:
                     isRunning = False
+            
+            bestScorePrint(RANKING_FILE)
 
             pointerChange(mouse_arrow)
             pygame.display.flip()
 
         pass
+
+
+
+
+    """
+CAMBIAR MENU DE OPCIONES POR UN MENU DE SCOREBOARD
+
+AGREGAR MUSICA Y EFECTOS, MUTEAR MUSICA CON LA TECLA 'M' Y EFECTOS CON LA 'E'
+
+MODIFICAR EL FONDO DE GAMEOVER, PAUSE. CAMBIAR 'YOUR SCORES' POR 'LAST SCORES'
+    """

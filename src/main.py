@@ -14,21 +14,23 @@ startButton = pygame.Rect(SCREEN_X_CENTER- buttonSize[0]//2,SCREEN_Y_CENTER ,but
 
 def main_menu():
     while True:
+        SCREEN.blit(MAIN_MENU_IMG, SCREEN_ORIGIN)
         clock.tick(60)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 quitGame()
         
-        SCREEN.blit(MAIN_MENU_IMG, SCREEN_ORIGIN)
         arrowMouse = False
 
-        if newButton("Start", startButton, COLORES["aqua"], COLORES["green"], startGame):
+        if newButton("Start", startButton, COLORES["yellow2"], COLORES["orange2"], startGame):
             arrowMouse = True
-        if newButton("Options", pygame.Rect(startButton.left, startButton.y + 60, buttonSize[0], buttonSize[1]), COLORES["aqua"], COLORES["green"], options):
+        if newButton("Options", pygame.Rect(startButton.left, startButton.y + 60, buttonSize[0], buttonSize[1]), COLORES["yellow2"], COLORES["orange2"], options):
             arrowMouse = True
-        if newButton("Exit", pygame.Rect(startButton.left, startButton.y + 120, buttonSize[0], buttonSize[1]), COLORES["aqua"], COLORES["green"], quitGame):
+        if newButton("Exit", pygame.Rect(startButton.left, startButton.y + 120, buttonSize[0], buttonSize[1]), COLORES["yellow2"], COLORES["orange2"], quitGame):
             arrowMouse = True
+        # if newButton("test", pygame.Rect(startButton.left, startButton.y + 180, buttonSize[0], buttonSize[1]), COLORES["yellow2"], COLORES["orange2"], bestScorePrint):
+        #     arrowMouse = True
 
         pointerChange(arrowMouse)
 
@@ -36,11 +38,9 @@ def main_menu():
         pygame.display.flip()
 
 
-
 clock = pygame.time.Clock()
 
 main_menu()
-    
 
     
     
