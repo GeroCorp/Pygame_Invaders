@@ -55,7 +55,6 @@ def lastScorePrint(file):
         txt = font.render(f"{username:<10}{userScore:<15}", True , COLORES['white'] )
         SCREEN.blit(txt, score["rect"])
 
-
 def enemySpawner (row: int, col: int, width: int, height: int, list: list):
     """Create a new list with enemies
 
@@ -77,7 +76,6 @@ def shelterPlacement(width: int, height: int, playerY: int, list: list):
         x = col * (width + 75) + 90
         y = playerY - height-30
         list.append({"rect":pygame.Rect( x , y , width , height), "sprite": 0})
-
 
 def enemyRetry(list:list):
     """Moves enemies up for a "continue" game

@@ -33,6 +33,11 @@ def startGame():
     bullet_speed = 4
     bullets = []
 
+    #powerups
+    powerUps = []
+    timerStart = False
+    powerStart = None
+
     shelterPlacement(100, 70, player["rect"].y, shelters)
 
     #                   HEALTH AND SCORE
@@ -63,6 +68,8 @@ def startGame():
 
 
     #----------------------------TIMERS------------------------------
+    #powerup timer
+    powerUsage = 5000
     #enemy movement timer
     segs = 0.4
     startTime= pygame.time.get_ticks()
@@ -174,6 +181,13 @@ def startGame():
                         else:
                             player_score +=20
                             scoreText = font.render(f"Score: {player_score}", True, COLORES["white"])
+                        
+                        #POWER UP CHANCE
+                        rng = randint(0,10)
+                        if rng >8:
+                            powerUp = pygame.Rect(enemy["rect"].centerx-3, enemy["rect"].bottom+8, 6, 8)
+                            powerUps.append(powerUp)
+
                 for shelter in shelters:
                     if bulletCollision(bullet, shelter["rect"]):
                         bullets.remove(bullet)
@@ -199,6 +213,26 @@ def startGame():
                 laser.y+= laser_speed
                 if laser.top > HEIGHT:
                     lasers.remove(laser)
+
+            #POWERUP
+            for powerup in powerUps:
+                timerStart = False
+                powerStart = None
+                powerup.y += 4
+                if powerup.top > HEIGHT:
+                    powerUps.remove(powerup)
+                
+                if rectCollision(powerUp, player["rect"])and not timerStart:
+                    timerStart = True
+                    powerStart = pygame.time.get_ticks()
+                    powerUps.remove(powerup)
+                    coolDown = 300
+
+            if timerStart:
+                currentTime = pygame.time.get_ticks()
+                if currentTime - powerStart >= powerUsage:
+                    timerStart = False
+                    coolDown = 1000
      
             #ENEMIES DRAW N MOVEMENT
             timeLastFrame += lastTick
@@ -291,18 +325,23 @@ def startGame():
             for shelter in shelters:
                 SCREEN.blit(SHELTERS_DAMAGE[shelter["sprite"]], shelter["rect"])
 
+            #PLAYER DRAW
             SCREEN.blit(PLAYER_SPRITE, player["rect"])
 
             #TEXT DRAW
             SCREEN.blit(lifesText, SCREEN_ORIGIN)
             SCREEN.blit(scoreText, (WIDTH-scoreText.get_width(), 0))
 
+            #LASER, SHOTS AND POWERUPS DRAW
             for bullet in bullets:
                 pygame.draw.rect(SCREEN, COLORES["white"],bullet)
 
             for laser in lasers:
                 pygame.draw.rect(SCREEN, COLORES["red2"],laser)
             
+            for powerup in powerUps:
+                pygame.draw.rect(SCREEN, COLORES["aqua"], powerUp)
+
 
             #GAME OVER SCREEN
             if player_lifes == 0:
