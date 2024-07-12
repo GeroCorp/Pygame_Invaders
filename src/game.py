@@ -11,16 +11,16 @@ def startGame():
 
     font = pygame.font.SysFont(None, 36)   
 
-    #SFXs and Bg Music
     pygame.mixer.music.load("./src/assets/sfx/backgroundSong.mp3")
     pygame.mixer.music.set_volume(0.04)
     pygame.mixer.music.play()
-
-
+    musicPlaying = True
+    #SFX
     LASER_SFX = pygame.mixer.Sound("./src/assets/sfx/laser.mp3")
     LASER_SFX.set_volume(0.1)
     SHOT_SFX = pygame.mixer.Sound("./src/assets/sfx/shot.mp3")
     SHOT_SFX.set_volume(0.1)
+    sfxMute = False
 
     #Buttons
     resumeButton = {"rect": pygame.Rect(340,SCREEN_Y_CENTER ,buttonSize[0], buttonSize[1]),"text":"Resume"}
@@ -116,6 +116,22 @@ def startGame():
                 if event.key == pygame.K_RIGHT:
                     kRight = True
 
+                if event.key == pygame.K_m:
+                    if musicPlaying:
+                        pygame.mixer.music.pause()
+                    else:
+                        pygame.mixer.music.unpause()
+                    musicPlaying = not musicPlaying
+                
+                if event.key == pygame.K_e:
+                    if sfxMute:
+                        LASER_SFX.set_volume(0.1)
+                        SHOT_SFX.set_volume(0.1)
+                    else:
+                        LASER_SFX.set_volume(0)
+                        SHOT_SFX.set_volume(0)
+                    sfxMute = not sfxMute
+                
                 #PAUSE KEY
                 if event.key == pygame.K_ESCAPE:
                     if gamePaused:
@@ -146,6 +162,9 @@ def startGame():
 
 
         if not gamePaused:
+            #Bg Music
+            pygame.mixer.music.set_volume(0.04)
+
             SCREEN.fill(COLORES["black"])
             pygame.mouse.set_visible(False)
 
@@ -226,7 +245,7 @@ def startGame():
                     timerStart = True
                     powerStart = pygame.time.get_ticks()
                     powerUps.remove(powerup)
-                    coolDown = 300
+                    coolDown = 500
 
             if timerStart:
                 currentTime = pygame.time.get_ticks()
@@ -346,6 +365,7 @@ def startGame():
             #GAME OVER SCREEN
             if player_lifes == 0:
                 pygame.mouse.set_visible(True)
+                pygame.mixer.music.stop()
                 name = nameInput(player_score)
                 user = {}
                 user["username"] = name
@@ -360,6 +380,7 @@ def startGame():
         else:
             mouse_arrow = False
             pygame.mouse.set_visible(True)
+            pygame.mixer.music.set_volume(0.01)
             
             SCREEN.blit(PAUSE_IMG, SCREEN_ORIGIN)
                 
@@ -373,6 +394,7 @@ def startGame():
                 mouse_arrow = True
                 
                 if click == 1:
+                    pygame.mixer.music.stop()
                     isRunning = False
             
             bestScorePrint(RANKING_FILE)
