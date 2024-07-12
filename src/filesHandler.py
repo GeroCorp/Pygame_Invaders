@@ -3,30 +3,6 @@ from functions import *
 import json
 import os
 
-
-listaScores = [{'username':"a",'score':15},
-               {'username':"b",'score':21},
-               {'username':"c",'score':18},
-               {'username':"h",'score':27},
-               {'username':"r",'score':30},
-               {'username':"n",'score':50},
-               {'username':"p",'score':9},
-               {'username':"w",'score':10},
-               {'username':"d",'score':14}
-               ]
-
-
-def mostrarDatos(lista:list)->None:
-    """Muestra tabla de datos de una lista
-
-    Args:
-        lista (list): Lista con datos de los posts
-    """
-    print(f"{'User':<10} {'Score':<8}")
-    print(f"===============================")
-    for user in lista:
-        print(f" {user['username']:<10} {user['score']:<8}")
-
 def swap(list:list,i:int,j:int):
     """Swapea elementos de una lista
 
@@ -38,9 +14,16 @@ def swap(list:list,i:int,j:int):
     aux=list[i]                
     list[i]=list[j]
     list[j]=aux
-
-       
+  
 def removeDup(lista: list)->list:
+    """Removes the duplicated items in a list
+
+    Args:
+        lista (list): List to filter
+
+    Returns:
+        list: Filtered list
+    """
     inList = set()
     newList = []
     for item in lista:
@@ -60,6 +43,14 @@ def removeDup(lista: list)->list:
     return newList
 
 def validateFile(fileToValidate):
+    """Verifies csv file existence. Creates one if not founded.
+
+    Args:
+        fileToValidate (path): CSV file path
+
+    Returns:
+        bool: returns file existence
+    """
     temp = False
     try:
         with open(getActualPath(fileToValidate), 'r', encoding="utf-8") as file:
@@ -74,7 +65,15 @@ def validateFile(fileToValidate):
         temp = True
     return temp
 
-def loadBestScores (thisFile):
+def loadBestScores (thisFile) -> list:
+    """Loads data from a CSV file
+
+    Args:
+        thisFile (path): CSV file path
+
+    Returns:
+        list: Returns the file's data in a list
+    """
     newList = []
     if validateFile(thisFile):
         with open(getActualPath(thisFile), 'r', encoding="utf-8") as file:
@@ -97,10 +96,13 @@ def loadBestScores (thisFile):
 
     return newList
 
+def saveBestScores (thisFile, user):
+    """Saves the user data in a CSV file
 
-
-def saveBestScores (thisFile:str, user):
-
+    Args:
+        thisFile (path): File's path
+        user (dict): User dictionary with data to save
+    """
     if validateFile(thisFile):
         print("s")
         previusScores = loadBestScores(thisFile)
@@ -109,20 +111,12 @@ def saveBestScores (thisFile:str, user):
         with open(getActualPath(thisFile), 'w', encoding='utf-8') as file:
             newList = []
 
-            # if len(previusScores) >1:
             keys = ','.join(list(previusScores[0].keys())) + '\n'
             file.write(keys)
-            # else:
-            #     keys = ','.join(previusScores[0]) + '\n'
-            #     file.write(keys)
 
-            
-            # for user in scoreList:
+
             newList.append(user)
             for score in previusScores:
-                # if user["score"] > score["score"]:
-                #     newList.append(user)
-                # else:
                 newList.append(score)
 
             newList=removeDup(newList)
@@ -144,11 +138,47 @@ def saveBestScores (thisFile:str, user):
                     print(dataList)
                 line = ','.join(dataList) + '\n'
                 file.write(line)
-    
 
+def saveLastScore(thisFile, user):
+    """Saves user scores sorted by last entered
+
+    Args:
+        thisFile (path): _description_
+        user (_type_): _description_
+    """
+    filePath = getActualPath(thisFile)
+    if os.path.exists(filePath):
+        with open(filePath, 'r', encoding="utf-8") as file:
+            try:
+                data =json.load(file)
+            except json.JSONDecodeError:
+                data = []
+    else:
+        data = []
     
-user ={
-    "username": "Gero",
-    "score": 100
-}
+    data.insert(0,user)
+
+    with open(filePath, 'w', encoding='utf-8') as file:
+        json.dump(data, file, indent=4)
+    
+def loadLastestScore (thisFile):
+    """Loads scores from json sorted by last score
+
+    Args:
+        thisFile (path): File's path
+
+    Returns:
+        list: List with user's data
+    """
+    filePath = getActualPath(thisFile)
+    if os.path.exists(filePath):
+        with open(filePath, 'r', encoding='utf-8') as file:
+            try:
+                data = json.load(file)
+            except json.JSONDecodeError:
+                data = []
+    else:
+        data = []
+
+    return data
 

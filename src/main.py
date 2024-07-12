@@ -1,6 +1,6 @@
 import pygame
 from game import startGame
-from options import options
+from scoreboard import scoreScreen
 from functions import *
 from settings import *
 
@@ -25,12 +25,10 @@ def main_menu():
 
         if newButton("Start", startButton, COLORES["yellow2"], COLORES["orange2"], startGame):
             arrowMouse = True
-        if newButton("Options", pygame.Rect(startButton.left, startButton.y + 60, buttonSize[0], buttonSize[1]), COLORES["yellow2"], COLORES["orange2"], options):
+        if newButton("Scoreboard", pygame.Rect(startButton.left, startButton.y + 60, buttonSize[0], buttonSize[1]), COLORES["yellow2"], COLORES["orange2"], scoreScreen):
             arrowMouse = True
         if newButton("Exit", pygame.Rect(startButton.left, startButton.y + 120, buttonSize[0], buttonSize[1]), COLORES["yellow2"], COLORES["orange2"], quitGame):
             arrowMouse = True
-        # if newButton("test", pygame.Rect(startButton.left, startButton.y + 180, buttonSize[0], buttonSize[1]), COLORES["yellow2"], COLORES["orange2"], bestScorePrint):
-        #     arrowMouse = True
 
         pointerChange(arrowMouse)
 

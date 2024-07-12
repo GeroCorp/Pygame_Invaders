@@ -9,21 +9,32 @@ def startGame():
 
     pygame.mouse.set_visible(False)
 
-    font = pygame.font.SysFont(None, 36)
+    font = pygame.font.SysFont(None, 36)   
 
-    #TEST delete later
-    keyK = False
-    
+    #SFXs and Bg Music
+    pygame.mixer.music.load("./src/assets/sfx/backgroundSong.mp3")
+    pygame.mixer.music.set_volume(0.04)
+    pygame.mixer.music.play()
+
+
+    LASER_SFX = pygame.mixer.Sound("./src/assets/sfx/laser.mp3")
+    LASER_SFX.set_volume(0.1)
+    SHOT_SFX = pygame.mixer.Sound("./src/assets/sfx/shot.mp3")
+    SHOT_SFX.set_volume(0.1)
 
     #Buttons
-    resumeButton = {"rect": pygame.Rect(SCREEN_X_CENTER- buttonSize[0]//2,SCREEN_Y_CENTER ,buttonSize[0], buttonSize[1]),"text":"Resume"}
-    mainMenuButton = {"rect": pygame.Rect(SCREEN_X_CENTER- buttonSize[0]//2,HEIGHT-100,buttonSize[0], buttonSize[1]),"text":"Main menu"}
+    resumeButton = {"rect": pygame.Rect(340,SCREEN_Y_CENTER ,buttonSize[0], buttonSize[1]),"text":"Resume"}
+    mainMenuButton = {"rect": pygame.Rect(740 , SCREEN_Y_CENTER , buttonSize[0], buttonSize[1]),"text":"Main menu"}
 
     #-------------------- PLAYER ------------------------
     player = {"rect": pygame.Rect(SCREEN_X_CENTER- player_width//2, HEIGHT-100, player_width, player_height)}
+    shelters = []
     player_speed = 5
     bullet_speed = 4
     bullets = []
+
+    shelterPlacement(100, 70, player["rect"].y, shelters)
+
     #                   HEALTH AND SCORE
     player_lifes = 3
 
@@ -37,7 +48,6 @@ def startGame():
     kRight = False
     
     #-------------------------------ENEMIES------------------------------------------------------
-    enemy = {"rect": pygame.Rect(SCREEN_X_CENTER, SCREEN_Y_CENTER, player_width, player_height)}
     laser_speed = 6
     num_enemies_x = 10
     num_enemies_y = 6
@@ -84,6 +94,13 @@ def startGame():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 quitGame()
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                click = event.button
+
+            if event.type == pygame.MOUSEBUTTONUP:
+                click = None
+            
             if event.type == pygame.KEYDOWN:
 
                 #MOVEMENT KEYS
@@ -105,23 +122,16 @@ def startGame():
                     currentTime = pygame.time.get_ticks()
                     #Si pasó un segundo desde el ultimo disparo
                     if currentTime - lastShot > coolDown:
+                        SHOT_SFX.play()
                         playerBullet = pygame.Rect(player["rect"].centerx - 2, player["rect"].top - 10, 5, 10)
                         bullets.append(playerBullet)
                         lastShot = currentTime
 
-                if event.key == pygame.K_DOWN:
-                    kDown = False
                 #MOVEMENT KEYS
                 if event.key == pygame.K_LEFT:
                     kLeft = False
                 if event.key == pygame.K_RIGHT:
                     kRight = False
-
-                #TEST delete later------------------
-                if event.key == pygame.K_k:
-                    keyK = True
-                #TEST--------------------------------
-        
     
             if event.type == pygame.WINDOWFOCUSLOST:
                 gamePaused = True
@@ -129,7 +139,7 @@ def startGame():
 
 
         if not gamePaused:
-            SCREEN.fill(COLORES["grey"])
+            SCREEN.fill(COLORES["black"])
             pygame.mouse.set_visible(False)
 
             #PLAYER MOVEMENT
@@ -164,6 +174,13 @@ def startGame():
                         else:
                             player_score +=20
                             scoreText = font.render(f"Score: {player_score}", True, COLORES["white"])
+                for shelter in shelters:
+                    if bulletCollision(bullet, shelter["rect"]):
+                        bullets.remove(bullet)
+                        if shelter["sprite"] < 2:
+                            shelter["sprite"] +=1
+                        else:
+                            shelters.remove(shelter)
 
             #                           LASER SPAWN
             currentTime = pygame.time.get_ticks()
@@ -172,53 +189,17 @@ def startGame():
                 for enemy in enemies:
                     rng = randint(1,12)
                     if rng >10:
+                        
                         enemyLaser = pygame.Rect(enemy["rect"].centerx - 2, enemy["rect"].bottom + 10, 5, 10)
                         lasers.append(enemyLaser)
                         lastLaser = currentTime
+                LASER_SFX.play()
             #                         LASER MOVEMENT
             for laser in lasers:
                 laser.y+= laser_speed
                 if laser.top > HEIGHT:
                     lasers.remove(laser)
      
-
-            #PLAYER KILL
-            for enemy in enemies:
-                if rectCollision(player["rect"], enemy["rect"]):
-                    player["rect"].x = SCREEN_X_CENTER- player_width//2
-                    SCREEN.blit(continueText,SCREEN_CENTER)
-                    bullets = []
-                    pygame.display.flip()
-                    waitUser(pygame.K_SPACE)
-
-                    player_lifes -=1
-                    lifesText = font.render(f"Vidas: {player_lifes}", True, COLORES["white"])
-
-                    enemyRetry(enemies)
-            for laser in lasers:
-                if rectCollision(laser, player["rect"]):
-                    player_lifes, lifesText, lasers =playerDeath(player["rect"], player_lifes, continueText, lasers)
-                    enemyRetry(enemies)
-                    bullets= []
-
-            #TEST delete later---------------------------------------
-            if keyK:
-                player["rect"].x = SCREEN_X_CENTER- player_width//2
-                SCREEN.blit(continueText,SCREEN_CENTER)
-                bullets = []
-                lasers = []
-                pygame.display.flip()
-                waitUser(pygame.K_SPACE)
-
-                player_lifes -=1
-                lifesText = font.render(f"Vidas: {player_lifes}", True, COLORES["white"])
-
-                enemyRetry(enemies)
-
-                keyK = False
-            #TEST-----------------------------------------------------
-
-
             #ENEMIES DRAW N MOVEMENT
             timeLastFrame += lastTick
             if timeLastFrame >= spriteChange:
@@ -236,7 +217,7 @@ def startGame():
             #Cada 0.4 segundos actualiza posición
             if player_lifes !=0:
                 if currentTime - startTime >= intervalo:
-                    #
+    
                     lastRowEnemy = max(enemies, key=lambda enemy: enemy["rect"].right)
 
                     firstRowEnemy = min(enemies, key=lambda enemy: enemy["rect"].left)
@@ -259,7 +240,40 @@ def startGame():
                         if enemy["rect"].left >= ENEMIES_X_SQUARE[0] and maxRight:
                             enemy["rect"].x -= enemy_speed
 
+
                     startTime = currentTime
+
+
+            #LASER COLLIDES SHELTER
+            for laser in lasers:
+                for shelter in shelters:
+                    if rectCollision( laser , shelter["rect"]):
+                        lasers.remove(laser)
+
+            #PLAYER KILL
+            for enemy in enemies:
+                if rectCollision(player["rect"], enemy["rect"]):
+                    player["rect"].x = SCREEN_X_CENTER- player_width//2
+                    SCREEN.blit(continueText,SCREEN_CENTER)
+                    bullets = []
+                    pygame.display.flip()
+                    waitUser(pygame.K_SPACE)
+
+                    kLeft = False
+                    kRight = False
+
+                    player_lifes -=1
+                    lifesText = font.render(f"Vidas: {player_lifes}", True, COLORES["white"])
+
+                    enemyRetry(enemies)
+            for laser in lasers:
+                if rectCollision(laser, player["rect"]):
+                    player_lifes, lifesText, lasers =playerDeath(player["rect"], player_lifes, continueText, lasers)
+                    enemyRetry(enemies)
+                    bullets= []
+                    kLeft = False
+                    kRight = False
+                
 
 
 
@@ -269,6 +283,8 @@ def startGame():
                     enemyRespawn = True
             for enemy in enemies:
                 SCREEN.blit(ENEMIES_SPRITES[sprite], enemy["rect"])
+            for shelter in shelters:
+                SCREEN.blit(SHELTERS_DAMAGE[shelter["sprite"]], shelter["rect"])
 
             SCREEN.blit(PLAYER_SPRITE, player["rect"])
 
@@ -291,32 +307,32 @@ def startGame():
                 user["username"] = name
                 user["score"] = player_score
                 saveBestScores(RANKING_FILE,user)
+                saveLastScore(LAST_SCORE_FILE, user)
                 isRunning= gameOver(startGame)
 
 
             pygame.display.flip()
 
         else:
+            mouse_arrow = False
             pygame.mouse.set_visible(True)
             
             SCREEN.blit(PAUSE_IMG, SCREEN_ORIGIN)
                 
-            click = pygame.mouse.get_pressed()
-            if click [0] == 1:
-                print(pygame.mouse.get_pos())
-
+            
             if newButton(resumeButton["text"], resumeButton["rect"], COLORES["yellow2"], COLORES["orange2"]):
                 mouse_arrow = True
-                click = pygame.mouse.get_pressed()
-                if click [0] == 1:
+                
+                if click == 1:
                     gamePaused = False
             if newButton(mainMenuButton["text"], mainMenuButton["rect"], COLORES["yellow2"], COLORES["orange2"]):
                 mouse_arrow = True
-                click = pygame.mouse.get_pressed()
-                if click [0] == 1:
+                
+                if click == 1:
                     isRunning = False
             
             bestScorePrint(RANKING_FILE)
+            lastScorePrint(LAST_SCORE_FILE)
 
             pointerChange(mouse_arrow)
             pygame.display.flip()
@@ -327,9 +343,8 @@ def startGame():
 
 
     """
-CAMBIAR MENU DE OPCIONES POR UN MENU DE SCOREBOARD
 
 AGREGAR MUSICA Y EFECTOS, MUTEAR MUSICA CON LA TECLA 'M' Y EFECTOS CON LA 'E'
 
-MODIFICAR EL FONDO DE GAMEOVER, PAUSE. CAMBIAR 'YOUR SCORES' POR 'LAST SCORES'
+
     """
