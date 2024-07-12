@@ -240,6 +240,11 @@ def startGame():
                         if enemy["rect"].left >= ENEMIES_X_SQUARE[0] and maxRight:
                             enemy["rect"].x -= enemy_speed
 
+                        for shelter in shelters:
+                            if rectCollision(enemy["rect"], shelter["rect"]):
+                                shelters.remove(shelter)
+
+
 
                     startTime = currentTime
 
